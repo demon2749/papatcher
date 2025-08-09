@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/sha1"
+	"io/ioutil"
 
 	_ "crypto/sha256"
 	"crypto/tls"
@@ -16,7 +17,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -30,10 +30,7 @@ import (
 	"time"
 )
 
-var cacerts_pem, err := os.ReadFile("service.planetaryannihilation.net.crt")
-if err != nil {
-	panic(err)
-}
+var cacerts_pem []byte
 
 type LoginParams struct {
 	TitleId    int
@@ -146,6 +143,7 @@ var client *http.Client
 
 func init() {
 	cacerts := x509.NewCertPool()
+	getCert()
 	worked := cacerts.AppendCertsFromPEM([]byte(cacerts_pem))
 	if !worked {
 		panic("could not parse CA certs")
@@ -699,6 +697,12 @@ func (ww *WriteWrapper) Read(bytes []byte) (n int, err error) {
 
 func (ww *WriteWrapper) Close() error {
 	return ww.file.Close()
+}
+
+func getCert() {
+	var err error
+	cacerts_pem, err = os.ReadFile("planetaryannihilation.net.crt")
+	panicIf(err)
 }
 
 func processBundle(bundle *ManifestBundle, download_prefix, auth_suffix, cache_dir, game_dir string, diag_chan, errors_chan chan<- string, progress_chan chan<- WorkItem) {
