@@ -7,8 +7,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/sha1"
-	"io/ioutil"
-
 	_ "crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
@@ -17,6 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -127,9 +126,10 @@ func panicIf(err error) {
 func readLine(reader *bufio.Reader, prompt string) (result string, err error) {
 	os.Stdout.Write([]byte(prompt))
 	result, err = reader.ReadString('\n')
-	if err == nil {
+	switch err {
+	case nil:
 		result = strings.TrimSuffix(result[:len(result)-1], "\r")
-	} else if err == io.EOF {
+	case io.EOF:
 		if result != "" {
 			err = nil
 		} else {
@@ -412,7 +412,6 @@ func run() int {
 			}
 		}
 		diag_done <- struct{}{}
-		return
 	}()
 
 	errors_chan := make(chan string, 3)
@@ -784,7 +783,7 @@ func verifyOrRecreate(filename string, checksum []byte, length int64, executable
 		if err != nil {
 			diag_chan <- fmt.Sprintf("%v: %v", filename, err)
 			file.Close()
-		} else if calculated := hash.Sum(make([]byte, 0, hash.Size())); bytes.Compare(checksum, calculated) != 0 {
+		} else if calculated := hash.Sum(make([]byte, 0, hash.Size())); !bytes.Equal(checksum, calculated) {
 			diag_chan <- fmt.Sprintf("%v: checksum wrong, got %v wanted %v", filename, hex.EncodeToString(calculated), hex.EncodeToString(checksum))
 			file.Close()
 		} else {
@@ -865,7 +864,7 @@ func verifyOrRecreate(filename string, checksum []byte, length int64, executable
 	src.Close()
 
 	calculated := hash.Sum(make([]byte, 0, hash.Size()))
-	if bytes.Compare(checksum, calculated) != 0 {
+	if !bytes.Equal(checksum, calculated) {
 		errors_chan <- fmt.Sprintf("%v: checksum wrong, got %v wanted %v", filename, hex.EncodeToString(calculated), hex.EncodeToString(checksum))
 		return nil
 	}
