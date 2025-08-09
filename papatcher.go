@@ -164,9 +164,9 @@ var platform_map = map[string]map[string]string{
 	},
 	"linux": {
 		"platform": "Linux",
-		"home":     "~",
-		"dir":      filepath.Join(".local", "Uber Entertainment", "Planetary Annihilation"),
-		"cache":    filepath.Join(".local", "Uber Entertainment", "Planetary Annihilation", ".cache"),
+		"home":     "/mnt",
+		"dir":      filepath.Join("server"),
+		"cache":    filepath.Join("server", ".cache"),
 	},
 	"windows": {
 		"platform": "Windows",
