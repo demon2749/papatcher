@@ -700,7 +700,7 @@ func (ww *WriteWrapper) Close() error {
 
 func getCert() {
 	var err error
-	cacerts_pem, err = os.ReadFile("planetaryannihilation.net.crt")
+	cacerts_pem, err = ioutil.ReadFile("planetaryannihilation.net.crt")
 	panicIf(err)
 }
 
